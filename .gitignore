@@ -1,0 +1,9 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+sbatch/
+sbatch_logs/
+
+results/
+logs/
+test/
