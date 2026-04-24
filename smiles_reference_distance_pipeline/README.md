@@ -121,7 +121,7 @@ python smiles_reference_distance_pipeline/run_smiles_reference_pipeline.py \
   --run_geodiff \
   --run_molformer \
   --run_unimol \
-  -- run_sde \
+  --run_sde \
   --run_ecfp \
 
 ```

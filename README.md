@@ -29,7 +29,7 @@ pip install ase
 pip install ogb==1.2.1
 ```
 
-To use UniMol without PyG and torch conflicts, install from resources:
+To use UniMol without PyG and torch conflicts, install from source:
 
 ```bash
 git clone https://github.com/deepmodeling/Uni-Mol.git
@@ -66,7 +66,10 @@ UniMol and MoLFormer can be used via the [unimol-tools](https://unimol-tools.rea
 
 ## Data
 
-LIT-PCBA, AmpC
+For [LIT-PCBA](https://drugdesign.unistra.fr/LIT-PCBA/), we used the [preprocessed reference ligand smiles]((https://github.com/sievestack/lit-pcba-audit/blob/main/pdb_to_ligand_mapping_with_smiles.csv)) provided by [Data Leakage and Redundancy in the LIT-PCBA Benchmark
+](https://arxiv.org/abs/2507.21404). Our original and best-pooled EF1% results for each reference ligand are in the [data](data/) folder.
+
+The AmpC dataset can be found [here](https://zenodo.org/records/10277786).
 
 
 ## Pipelines
