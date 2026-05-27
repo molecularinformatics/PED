@@ -5,7 +5,7 @@
 [![ICML](https://img.shields.io/badge/ICML-AI4Science-green
 )](https://ai4sciencecommunity.github.io/icml26.html)
 
-The official implementation of Advancing Ligand-based Virtual Screening and Molecular Generation with Pretrained Molecular Embedding Distance (XXX 2026 ****).
+The official implementation of Advancing Ligand-based Virtual Screening and Molecular Generation with Pretrained Molecular Embedding Distance (ICML 2026 AI4Science).
 
 ![cover](figs/PED-Main.svg)
 
