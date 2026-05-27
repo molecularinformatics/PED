@@ -87,5 +87,13 @@ The AmpC dataset can be found [here](https://zenodo.org/records/10277786).
 ## Citation
 
 ```
-under review...
+@misc{wa2026advancingligandbasedvirtualscreening,
+      title={Advancing Ligand-based Virtual Screening and Molecular Generation with Pretrained Molecular Embedding Distance}, 
+      author={Shiyun Wa and Yifei Wang and Simone Sciabola and Ye Wang},
+      year={2026},
+      eprint={2604.24474},
+      archivePrefix={arXiv},
+      primaryClass={cs.LG},
+      url={https://arxiv.org/abs/2604.24474}, 
+}
 ```
