@@ -3,7 +3,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/molecularinformatics/PED/blob/main/LICENSE)
 [![ArXiv](https://img.shields.io/badge/cs.LG-arXiv%3A2604.24474-B31B1B.svg)](https://arxiv.org/abs/2604.24474)
 [![ICML](https://img.shields.io/badge/ICML-AI4Science-green
-)](https://ai4sciencecommunity.github.io/icml26.html)
+)](https://openreview.net/forum?id=HbfrCipfNl)
 
 The official implementation of Advancing Ligand-based Virtual Screening and Molecular Generation with Pretrained Molecular Embedding Distance (ICML 2026 AI4Science).
 
