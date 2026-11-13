@@ -12,6 +12,30 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 
+REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+DEFAULT_REFS_CSV = os.path.join(REPO_ROOT, "data", "lit-pcba-reference.csv")
+
+
+def load_reference_table(refs_csv: str, target: str) -> pd.DataFrame:
+    """Reference ligands for one target from the curated SMILES table."""
+    table = pd.read_csv(refs_csv)
+    missing = {"target", "pdb_id", "ligand_id", "smiles"} - set(table.columns)
+    if missing:
+        raise ValueError(f"{refs_csv} is missing columns {sorted(missing)}")
+    rows = table[table["target"].astype(str).str.strip() == target].copy()
+    if len(rows) == 0:
+        raise ValueError(f"{refs_csv} has no rows for target {target!r}")
+    rows["ref_name"] = rows["pdb_id"].astype(str).str.strip() + "_ligand"
+    rows["raw_smiles"] = rows["smiles"]
+    rows["smiles"] = rows["smiles"].map(canonicalize_smiles)
+    if rows["smiles"].isna().any():
+        bad = rows.loc[rows["smiles"].isna(), "pdb_id"].tolist()
+        raise ValueError(f"{refs_csv}: canonicalization failed for {bad}")
+    rows["mol2_path"] = ""
+    rows["input_type"] = "refs_csv"
+    return rows[["ref_name", "pdb_id", "smiles", "raw_smiles", "mol2_path", "input_type"]]
+
+
 def sanitize_name(text: str) -> str:
     text = str(text).strip()
     text = re.sub(r"[^A-Za-z0-9._-]+", "_", text)
@@ -69,11 +93,20 @@ def find_reference_ligands(target_dir: str) -> List[str]:
     return paths
 
 
-def prepare_target_inputs(target_dir: str, out_dir: str) -> Tuple[str, str, str]:
-    """
-    Create refs.csv, library.csv, and prep_meta.json under out_dir.
+def prepare_target_inputs(
+    target_dir: str,
+    out_dir: str,
+    refs_csv: Optional[str] = DEFAULT_REFS_CSV,
+    target: Optional[str] = None,
+) -> Tuple[str, str, str]:
+    """Create refs.csv, library.csv and prep_meta.json under out_dir.
+
+    References come from the curated SMILES table by default; pass refs_csv=None to
+    read them from the target folder's .mol2 files instead.
     """
     os.makedirs(out_dir, exist_ok=True)
+    target = target or Path(os.path.abspath(target_dir)).name
+    reference_source = refs_csv or "mol2"
 
     active_path = os.path.join(target_dir, "actives.smi")
     inactive_path = os.path.join(target_dir, "inactives.smi")
@@ -82,12 +115,18 @@ def prepare_target_inputs(target_dir: str, out_dir: str) -> Tuple[str, str, str]
     if not os.path.exists(inactive_path):
         raise FileNotFoundError(f"Missing inactives.smi under {target_dir}")
 
-    ligand_paths = find_reference_ligands(target_dir)
-    if len(ligand_paths) == 0:
-        raise FileNotFoundError(f"No *_ligand.mol2 files found under {target_dir}")
-
     ref_rows: List[Dict[str, object]] = []
     failed_refs: List[Dict[str, str]] = []
+    refs_from_csv = None
+    if refs_csv:
+        refs_from_csv = load_reference_table(refs_csv, target)
+        ref_rows = refs_from_csv.to_dict("records")
+        ligand_paths = []
+    else:
+        ligand_paths = find_reference_ligands(target_dir)
+        if len(ligand_paths) == 0:
+            raise FileNotFoundError(f"No *_ligand.mol2 files found under {target_dir}")
+
     for lig_path in ligand_paths:
         ref_name = Path(lig_path).stem
         pdb_id = ref_name.replace("_ligand", "")
@@ -151,7 +190,9 @@ def prepare_target_inputs(target_dir: str, out_dir: str) -> Tuple[str, str, str]
     lib_df.to_csv(lib_csv, index=False)
 
     meta = {
+        "target": target,
         "target_dir": os.path.abspath(target_dir),
+        "reference_source": reference_source,
         "n_reference_ligands_before_dedup": int(refs_df_orig_len),
         "n_reference_ligands": int(len(refs_df)),
         "n_reference_ligands_duplicates_removed": int(refs_df_orig_len - len(refs_df)),

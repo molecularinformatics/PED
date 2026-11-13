@@ -10,6 +10,12 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Patch
 from matplotlib.lines import Line2D
 
+from pathlib import Path
+
+# Repo-local scratch for pipeline outputs; see .gitignore.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RESULTS = REPO_ROOT / "results"
+
 
 targets_a = ['ADRB2', 'ESR1_ant', 'ESR1_ago', 'MAPK1', 'MTORC1', 'PKM2', 'PPARG', 'TP53']
 targets_b = ['ALDH1', 'FEN1', 'GBA', 'IDH1', 'KAT2A', 'OPRK1', 'VDR']
@@ -329,19 +335,20 @@ def main():
     parser.add_argument(
         "--xlsx",
         type=str,
-        default="./roshambo2.xlsx",
+        # ROSHAMBO2 paper supplementary workbook; not bundled, drop it here.
+        default=str(REPO_ROOT / "data" / "roshambo2.xlsx"),
         help="Path to Roshambo xlsx file."
     )
     parser.add_argument(
         "--geodiff_dir",
         type=str,
-        default="/mnt/depts/dept01/misd/molml/embeddings/figures_geodiff",
+        default=str(RESULTS / "lit_pcba" / "ef1"),
         help="Directory containing GeoDiff per_reference and pooled csv files."
     )
     parser.add_argument(
         "--molformer_dir",
         type=str,
-        default="/mnt/depts/dept01/misd/molml/embeddings/figures_molformer",
+        default=str(RESULTS / "lit_pcba" / "ef1"),
         help="Directory containing MoLFormer per_reference and pooled csv files."
     )
     parser.add_argument(

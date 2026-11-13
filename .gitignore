@@ -7,3 +7,6 @@ sbatch_logs/
 results/
 logs/
 test/
+__pycache__/
+*.pyc
+.DS_Store

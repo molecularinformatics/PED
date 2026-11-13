@@ -3,6 +3,13 @@ import ast
 import numpy as np
 import pandas as pd
 
+import os
+from pathlib import Path
+
+# Repo-local scratch for pipeline outputs; see .gitignore.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RESULTS = REPO_ROOT / "results"
+
 
 TARGETS = [
     "ADRB2",
@@ -292,7 +299,8 @@ def main():
     parser.add_argument(
         "--xlsx",
         type=str,
-        default="./roshambo2.xlsx",
+        # ROSHAMBO2 paper supplementary workbook; not bundled, drop it here.
+        default=str(REPO_ROOT / "data" / "roshambo2.xlsx"),
         help="Path to Roshambo2 Excel file."
     )
     parser.add_argument(
@@ -304,23 +312,15 @@ def main():
 
     args = parser.parse_args()
 
-    geodiff_per_ref_csv = (
-        f"/mnt/depts/dept01/misd/molml/embeddings/figures_geodiff/"
-        f"lit_pcba_geodiff_{args.dist_type}_per_reference.csv"
-    )
-    geodiff_pooled_csv = (
-        f"/mnt/depts/dept01/misd/molml/embeddings/figures_geodiff/"
-        f"lit_pcba_geodiff_{args.dist_type}_pooled.csv"
-    )
+    geodiff_per_ref_csv = str(RESULTS / "lit_pcba" / "ef1" /
+                              f"lit_pcba_geodiff_{args.dist_type}_per_reference.csv")
+    geodiff_pooled_csv = str(RESULTS / "lit_pcba" / "ef1" /
+                             f"lit_pcba_geodiff_{args.dist_type}_pooled.csv")
 
-    molformer_per_ref_csv = (
-        f"/mnt/depts/dept01/misd/molml/embeddings/figures_molformer/"
-        f"lit_pcba_molformer_{args.dist_type}_per_reference.csv"
-    )
-    molformer_pooled_csv = (
-        f"/mnt/depts/dept01/misd/molml/embeddings/figures_molformer/"
-        f"lit_pcba_molformer_{args.dist_type}_pooled.csv"
-    )
+    molformer_per_ref_csv = str(RESULTS / "lit_pcba" / "ef1" /
+                                f"lit_pcba_molformer_{args.dist_type}_per_reference.csv")
+    molformer_pooled_csv = str(RESULTS / "lit_pcba" / "ef1" /
+                               f"lit_pcba_molformer_{args.dist_type}_pooled.csv")
 
     roshambo_comb_name = "ROSHAMBO2 score"
     geodiff_name = f"GeoDiff {args.dist_type} distance"

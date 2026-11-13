@@ -30,7 +30,35 @@ def deduplicate_embeddings(df: pd.DataFrame, emb: np.ndarray, keep: str):
     keep_idx = df.drop_duplicates(subset=["smiles"], keep="first").index.to_numpy()
     out_df = df.loc[keep_idx].reset_index(drop=True)
     out_emb = emb[keep_idx]
+    # The row index is a position into emb, so it has to follow the dedup.
+    idx_col = next(c for c in out_df.columns if c.endswith("_row_idx"))
+    out_df[idx_col] = np.arange(len(out_df), dtype=np.int64)
     return out_df, out_emb
+
+
+def deduplicate_references(refs_meta: pd.DataFrame, keep: str = "first") -> pd.DataFrame:
+    """Keep one row per distinct reference SMILES. The kept ``ref_name`` is arbitrary
+    among identical ligands; the SMILES, and so the distance, is not."""
+    before = len(refs_meta)
+    out = refs_meta.drop_duplicates(subset=["smiles"], keep=keep).reset_index(drop=True)
+    if before != len(out):
+        print(f"[refs] {before} reference rows -> {len(out)} distinct SMILES "
+              f"({before - len(out)} duplicate(s) dropped)")
+    return out
+
+
+def check_reference_merge(ref_df: pd.DataFrame, refs_meta: pd.DataFrame, what: str) -> None:
+    """Fail if the merge expanded the reference set or repeated a column name."""
+    if len(ref_df) != len(refs_meta):
+        raise ValueError(
+            f"{what}: reference merge changed the row count, {len(refs_meta)} -> "
+            f"{len(ref_df)}; a duplicate SMILES corrupts the per-reference columns "
+            f"and the pooled minimum."
+        )
+    names = [sanitize_name(n) for n in ref_df["ref_name"]]
+    if len(set(names)) != len(names):
+        dupes = sorted({n for n in names if names.count(n) > 1})
+        raise ValueError(f"{what}: duplicate reference column names after merge: {dupes}")
 
 
 def build_mode_embeddings(lib_2d, lib_3d, ref_2d, ref_3d, mode: str):
@@ -62,14 +90,16 @@ def compute_geodiff(args):
     lib_df_2d, lib_emb_2d = load_embedding_table(os.path.join(args.library_emb_root, "2D"), prefix="lib")
     lib_df_3d, lib_emb_3d = load_embedding_table(os.path.join(args.library_emb_root, "3D"), prefix="lib")
 
-    # Some reference ligands are duplicated according to the original paper
-    # ref_df_2d, ref_emb_2d = deduplicate_embeddings(ref_df_2d, ref_emb_2d, keep=args.dedup_embeddings)
-    # ref_df_3d, ref_emb_3d = deduplicate_embeddings(ref_df_3d, ref_emb_3d, keep=args.dedup_embeddings)
+    # Collapse duplicate reference SMILES on both sides, or the merge expands.
+    refs_meta = deduplicate_references(refs_meta, keep=args.dedup_embeddings)
+    ref_df_2d, ref_emb_2d = deduplicate_embeddings(ref_df_2d, ref_emb_2d, keep=args.dedup_embeddings)
+    ref_df_3d, ref_emb_3d = deduplicate_embeddings(ref_df_3d, ref_emb_3d, keep=args.dedup_embeddings)
     lib_df_2d, lib_emb_2d = deduplicate_embeddings(lib_df_2d, lib_emb_2d, keep=args.dedup_embeddings)
     lib_df_3d, lib_emb_3d = deduplicate_embeddings(lib_df_3d, lib_emb_3d, keep=args.dedup_embeddings)
 
     ref_df = refs_meta.merge(ref_df_2d[["smiles", "ref_row_idx"]], on="smiles", how="inner")
     ref_df = ref_df.merge(ref_df_3d[["smiles", "ref_row_idx"]], on=["smiles", "ref_row_idx"], how="inner")
+    check_reference_merge(ref_df, refs_meta, "geodiff")
 
     lib_df = lib_meta.merge(lib_df_2d[["smiles", "lib_row_idx"]], on="smiles", how="inner")
     lib_df = lib_df.merge(lib_df_3d[["smiles", "lib_row_idx"]], on=["smiles", "lib_row_idx"], how="inner")
@@ -110,11 +140,13 @@ def compute_molformer(args):
     ref_df_emb, ref_emb = load_embedding_table(args.refs_emb_root, prefix="ref")
     lib_df_emb, lib_emb = load_embedding_table(args.library_emb_root, prefix="lib")
 
-    # ref_df_emb, ref_emb = deduplicate_embeddings(ref_df_emb, ref_emb, keep=args.dedup_embeddings)
+    refs_meta = deduplicate_references(refs_meta, keep=args.dedup_embeddings)
+    ref_df_emb, ref_emb = deduplicate_embeddings(ref_df_emb, ref_emb, keep=args.dedup_embeddings)
     lib_df_emb, lib_emb = deduplicate_embeddings(lib_df_emb, lib_emb, keep=args.dedup_embeddings)
 
     ref_df = refs_meta.merge(ref_df_emb[["smiles", "ref_row_idx"]], on="smiles", how="inner")
     lib_df = lib_meta.merge(lib_df_emb[["smiles", "lib_row_idx"]], on="smiles", how="inner")
+    check_reference_merge(ref_df, refs_meta, "molformer")
 
     if len(ref_df) == 0:
         raise ValueError("No reference smiles survived the merge between refs csv and molformer embeddings")
