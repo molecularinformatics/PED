@@ -4,6 +4,13 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+import os
+from pathlib import Path
+
+# Repo-local scratch for pipeline outputs; see .gitignore.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RESULTS = REPO_ROOT / "results"
+
 
 def resolve_columns(dist_type: str):
     dist_type = dist_type.lower()
@@ -34,7 +41,7 @@ def main():
     parser.add_argument(
         "--csv",
         type=str,
-        default="/mnt/depts/dept01/misd/molml/embeddings/200k_emb/similarity_distance_200k.csv",
+        default=str(RESULTS / "ampc200k" / "similarity_distance_200k.csv"),
     )
     parser.add_argument(
         "--dist_type",

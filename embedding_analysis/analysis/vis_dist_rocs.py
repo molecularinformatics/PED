@@ -5,6 +5,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+from pathlib import Path
+
+# Repo-local scratch for pipeline outputs; see .gitignore.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RESULTS = REPO_ROOT / "results"
+
 
 def build_rocs_bins_from_data(values, step=0.1):
     """
@@ -133,7 +139,7 @@ if __name__ == "__main__":
     parser.add_argument("--rocs_col", type=str, default="3d_similarity_ROCS", choices=["3d_similarity_ROCS", "ShapeTanimoto", "ColorTanimoto"])
     args = parser.parse_args()
 
-    dir_name = "/mnt/depts/dept01/misd/molml/embeddings/200k_emb"
+    dir_name = str(RESULTS / "ampc200k")
     df = pd.read_csv(os.path.join(dir_name, "similarity_distance_200k.csv"))
     df = df.drop_duplicates(subset="smiles")
     print(df.shape)

@@ -1,17 +1,33 @@
+"""Merge the per-model distance CSVs onto the reference similarity table."""
+
+import argparse
 import os
 import glob
 import pandas as pd
 
+from pathlib import Path
 
-# ============================================================
-# paths
-# ============================================================
-base_csv = "/mnt/depts/dept01/misd/molml/embeddings/200k_GeoDiff_emb/similarity_distance_200k_with_all_distances.csv"
-prepared_library_csv = "/mnt/depts/dept01/misd/molml/embeddings/200k_emb/prepared/library.csv"
+# Repo-local scratch for pipeline outputs; see .gitignore.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RESULTS = REPO_ROOT / "results"
 
-distance_dir = "/mnt/depts/dept01/misd/molml/embeddings/200k_emb"
 
-out_csv = os.path.join(distance_dir, "similarity_distance_200k.csv")
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--base_csv",
+                    default=str(RESULTS / "ampc200k" / "similarity_distance_200k_with_all_distances.csv"),
+                    help="Table carrying the ROCS and ECFP4 reference similarities")
+parser.add_argument("--prepared_library_csv",
+                    default=str(RESULTS / "ampc200k" / "prepared" / "library.csv"))
+parser.add_argument("--distance_dir", default=str(RESULTS / "ampc200k"),
+                    help="Searched recursively for smiles_reference_*_distances.csv")
+parser.add_argument("--out_csv", default=None)
+args = parser.parse_args()
+
+base_csv = args.base_csv
+prepared_library_csv = args.prepared_library_csv
+distance_dir = args.distance_dir
+os.makedirs(distance_dir, exist_ok=True)
+out_csv = args.out_csv or os.path.join(distance_dir, "similarity_distance_200k.csv")
 
 
 # ============================================================

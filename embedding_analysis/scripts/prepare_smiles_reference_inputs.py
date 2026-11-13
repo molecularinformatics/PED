@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from pipline_utils import canonicalize_smiles
+from pipeline_utils import canonicalize_smiles
 
 
 def main():

@@ -5,18 +5,24 @@ import pandas as pd
 
 from unimol_tools import UniMolRepr
 
+from pathlib import Path
+
+# Repo-local scratch for pipeline outputs; see .gitignore.
+REPO_ROOT = Path(__file__).resolve().parents[2]
+RESULTS = REPO_ROOT / "results"
+
 
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--input_csv",
         type=str,
-        default="/mnt/depts/dept01/misd/molml/embeddings/200k_GeoDiff_emb/similarity_distance_200k_with_all_distances.csv",
+        default=str(RESULTS / "ampc200k" / "similarity_distance_200k_with_all_distances.csv"),
     )
     parser.add_argument(
         "--output_dir",
         type=str,
-        default="/mnt/depts/dept01/misd/molml/embeddings/200k_UniMol_emb",
+        default=str(RESULTS / "ampc200k" / "embeddings" / "unimol"),
     )
     parser.add_argument(
         "--smiles_col",

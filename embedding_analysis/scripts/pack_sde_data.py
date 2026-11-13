@@ -12,7 +12,7 @@ from rdkit import Chem
 from torch_geometric.data import Data
 from tqdm import tqdm
 
-from pipline_utils import smiles_to_conformers, write_json
+from pipeline_utils import smiles_to_conformers, write_json
 from MoleculeSDE.Geom3D.datasets.dataset_utils import (
     mol_to_graph_data_obj_simple_2D,
     mol_to_graph_data_obj_simple_3D,

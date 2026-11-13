@@ -27,6 +27,12 @@ from geodiff.utils.misc import seed_all
 from geodiff.models.epsnet import get_model
 from geodiff.utils.transforms import Compose, CountNodesPerGraph, AddHigherOrderEdges
 
+from pathlib import Path
+
+# Repo-local scratch for pipeline outputs; see .gitignore.
+REPO_ROOT = Path(__file__).resolve().parents[3]
+RESULTS = REPO_ROOT / "results"
+
 
 # =========================================================
 # basic utils
@@ -697,12 +703,12 @@ def main():
     parser.add_argument(
         "--input_csv",
         type=str,
-        default="/mnt/depts/dept01/misd/molml/embeddings/200k_GeoDiff_emb/similarity_distance_200k_all_metrics_with2d.csv"
+        default=str(RESULTS / "ampc200k" / "similarity_distance_200k_all_metrics_with2d.csv")
     )
     parser.add_argument(
         "--out_root",
         type=str,
-        default="/mnt/depts/dept01/misd/molml/embeddings/shuffle"
+        default=str(RESULTS / "shuffle")
     )
     parser.add_argument("--smiles_col", type=str, default="smiles")
     parser.add_argument("--score_col", type=str, default="3d_similarity_ROCS")

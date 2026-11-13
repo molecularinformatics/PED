@@ -2,8 +2,14 @@ import os
 import numpy as np
 import pandas as pd
 
+from pathlib import Path
 
-root_dir = "/mnt/depts/dept01/misd/molml/embeddings/shuffle"
+# Repo-local scratch for pipeline outputs; see .gitignore.
+REPO_ROOT = Path(__file__).resolve().parents[3]
+RESULTS = REPO_ROOT / "results"
+
+
+root_dir = str(RESULTS / "shuffle")
 
 # loop through all the subfolders of root_dir,
 # and check the length of smiles.npy and results.csv

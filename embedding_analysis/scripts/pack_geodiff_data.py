@@ -8,7 +8,7 @@ import multiprocessing as mp
 import pandas as pd
 from tqdm import tqdm
 
-from pipline_utils import row_to_mols
+from pipeline_utils import row_to_mols
 from geodiff.utils.datasets import rdmol_to_data as _rdmol_to_data
 
 

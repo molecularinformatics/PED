@@ -6,15 +6,22 @@ import pandas as pd
 from rdkit import Chem
 from scipy.stats import spearmanr
 
+from pathlib import Path
+
+# Repo-local scratch for pipeline outputs; see .gitignore.
+REPO_ROOT = Path(__file__).resolve().parents[3]
+RESULTS = REPO_ROOT / "results"
+
 
 # =========================
 # paths
 # =========================
-all_distance_csv = "/mnt/depts/dept01/misd/molml/embeddings/200k_GeoDiff_emb/similarity_distance_200k_with_all_distances.csv"
-geodiff_canonical_csv = "/mnt/depts/dept01/misd/molml/embeddings/200k_emb/distance/smiles_reference_geodiff_distances.csv"
-molformer_canonical_csv = "/mnt/depts/dept01/misd/molml/embeddings/200k_emb/distance/smiles_reference_molformer_distances.csv"
+all_distance_csv = str(RESULTS / "ampc200k" / "similarity_distance_200k_with_all_distances.csv")
+geodiff_canonical_csv = str(RESULTS / "ampc200k" / "distance" / "smiles_reference_geodiff_distances.csv")
+molformer_canonical_csv = str(RESULTS / "ampc200k" / "distance" / "smiles_reference_molformer_distances.csv")
 
-out_merged_csv = "/mnt/depts/dept01/misd/molml/embeddings/200k_emb/raw_canonical_distances.csv"
+out_merged_csv = str(RESULTS / "ampc200k" / "raw_canonical_distances.csv")
+os.makedirs(os.path.dirname(out_merged_csv), exist_ok=True)
 
 
 # =========================

@@ -4,7 +4,7 @@ import os
 import numpy as np
 import pandas as pd
 
-from pipline_utils import (
+from pipeline_utils import (
     concat_embeddings,
     concat_normalized_embeddings,
     cosine_distance_matrix,
@@ -37,6 +37,9 @@ def deduplicate_embeddings(df: pd.DataFrame, emb: np.ndarray, keep: str):
     keep_idx = df.drop_duplicates(subset=["smiles"], keep="first").index.to_numpy()
     out_df = df.loc[keep_idx].reset_index(drop=True)
     out_emb = emb[keep_idx]
+    # The row index is a position into emb, so it has to follow the dedup.
+    idx_col = next(c for c in out_df.columns if c.endswith("_row_idx"))
+    out_df[idx_col] = np.arange(len(out_df), dtype=np.int64)
     return out_df, out_emb
 
 
