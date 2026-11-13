@@ -12,62 +12,56 @@ The official implementation of Advancing Ligand-based Virtual Screening and Mole
 
 ## Environments
 
-Dependencies for MoLFormer and GeoDiff:
+Two environments, split where the dependencies genuinely conflict rather than per
+model. `ped-embed` covers GeoDiff, MoLFormer, MoleculeSDE, ECFP and all analysis, and
+serves both pipelines. `ped-unimol` exists only because `unimol_tools` conflicts with
+the PyG stack the other models need.
 
 ```bash
-# Clone the environment
 git clone https://github.com/molecularinformatics/PED.git
 cd PED
 
-conda env create -f environment.yml
+conda env create -f environment.yml      # ped-embed
 conda activate ped_torch
 ```
 
-To use MoleculeSDE, futher install:
-
-```bash
-pip install ase
-pip install ogb==1.2.1
-```
-
-To use UniMol without PyG and torch conflicts, install from source:
+For Uni-Mol2, in a separate environment:
 
 ```bash
 git clone https://github.com/deepmodeling/Uni-Mol.git
 cd Uni-Mol/unimol_tools
-
 pip install --no-deps -e .
 pip install numba addict
 ```
 
+`run_embedding.py --python_unimol /path/to/that/env/bin/python` then uses it for the
+Uni-Mol2 stages only.
 
-## Import models
 
-[GeoDiff](https://github.com/MinkaiXu/GeoDiff/tree/pretrain) and [MoleculeSDE](https://github.com/chao1224/MoleculeSDE) should be cloned and put into this directory manually.
+## External models
+
+GeoDiff and MoleculeSDE are used as libraries and have to be cloned at a fixed
+commit and patched before their encoders can be imported. This is scripted:
 
 ```bash
-git clone https://github.com/MinkaiXu/GeoDiff.git
-git checkout pretrain
-
-git clone https://github.com/chao1224/MoleculeSDE.git
+cd external
+PED_CKPT_SRC=/path/to/checkpoints ./setup.sh
+PED_PYTHON=$(which python) ./setup.sh verify
 ```
 
-Then, add lacked `__init__.py` files to each folder, and modify the internal module import via a relative path format. For example:
+`setup.sh` pins each repository to a recorded commit, applies the patch kept beside
+it, places the checkpoints and verifies their SHA-256. It is idempotent. See
+[external/](external/) for the pinned commits and for what each patch changes.
 
-```python
-from ..encoder import SchNetEncoder, GINEncoder, get_edge_encoder
-```
-
-Particularly, in `geodiff/utils/chem.py`, comment out `from torchvision.transforms.functional import to_tensor`, and replace `to_tensor()` with `torch.tensor()` in the script.
-
-Also download model weights and put in the correct path.
-
-UniMol and MoLFormer can be used via the [unimol-tools](https://unimol-tools.readthedocs.io/en/latest/train.html#uni-mol-representation) and [huggingface](https://huggingface.co/ibm-research/MoLFormer-XL-both-10pct).
+MoLFormer needs no repository, only the
+[HuggingFace checkpoint](https://huggingface.co/ibm-research/MoLFormer-XL-both-10pct);
+Uni-Mol2 comes from
+[unimol-tools](https://unimol-tools.readthedocs.io/en/latest/train.html#uni-mol-representation).
 
 
 ## Data
 
-For [LIT-PCBA](https://drugdesign.unistra.fr/LIT-PCBA/), we used the [preprocessed reference ligand smiles]((https://github.com/sievestack/lit-pcba-audit/blob/main/pdb_to_ligand_mapping_with_smiles.csv)) provided by [Data Leakage and Redundancy in the LIT-PCBA Benchmark
+For [LIT-PCBA](https://drugdesign.unistra.fr/LIT-PCBA/), we used the [preprocessed reference ligand smiles](https://github.com/sievestack/lit-pcba-audit/blob/main/pdb_to_ligand_mapping_with_smiles.csv) provided by [Data Leakage and Redundancy in the LIT-PCBA Benchmark
 ](https://arxiv.org/abs/2507.21404). Our original and best-pooled EF1% results for each reference ligand are in the [data](data/) folder.
 
 The AmpC dataset can be found [here](https://zenodo.org/records/10277786).
@@ -75,13 +69,23 @@ The AmpC dataset can be found [here](https://zenodo.org/records/10277786).
 
 ## Pipelines
 
-- [smiles_reference_distance_pipeline](smiles_reference_distance_pipeline/): Library molecules—reference ligand distance pipeline
+Each pipeline has one end-to-end entry point that takes a subset or everything, and
+resumes rather than repeats on a rerun.
 
-- [lit_pcba_pipeline](lit_pcba_pipeline/): LIT-PCBA PED pipeline
+- [embedding_analysis](embedding_analysis/): library-to-reference distances under five
+  representations, and the analyses built on them.
+  `python embedding_analysis/run_embedding.py --models all`
 
-- [canonical_shuffle_test](canonical_shuffle_test/): SMILES representation's impact on different pretrained embeddings
+- [lit_pcba_pipeline](lit_pcba_pipeline/): LIT-PCBA virtual screening, from raw target
+  folders to EF1% tables and figures.
+  `python lit_pcba_pipeline/run_lit_pcba.py --targets all`
 
-- [scoring_function](scoring_function/): PED-based scoring function for molecular generation with reinforcement learning
+- [scoring_function](scoring_function/): PED-based scoring component for molecular
+  generation with reinforcement learning.
+
+- [external](external/): pinned clones and patches for GeoDiff and MoleculeSDE.
+
+Pipeline outputs go to `results/`, which is gitignored.
 
 
 ## Citation

@@ -1,0 +1,207 @@
+diff --git a/__init__.py b/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/eval_covmat.py.py b/eval_covmat.py.py
+index 75e5bab..e05ea6b 100644
+--- a/eval_covmat.py.py
++++ b/eval_covmat.py.py
+@@ -3,9 +3,9 @@ import argparse
+ import pickle
+ import torch
+ 
+-from utils.datasets import PackedConformationDataset
+-from utils.evaluation.covmat import CovMatEvaluator, print_covmat_results
+-from utils.misc import *
++from .utils.datasets import PackedConformationDataset
++from .utils.evaluation.covmat import CovMatEvaluator, print_covmat_results
++from .utils.misc import *
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/eval_prop.py b/eval_prop.py
+index 9d96ba4..de6bed9 100644
+--- a/eval_prop.py
++++ b/eval_prop.py
+@@ -8,8 +8,8 @@ from tqdm.auto import tqdm
+ from easydict import EasyDict
+ from torch_geometric.data import Data
+ 
+-from utils.datasets import PackedConformationDataset
+-from utils.chem import set_rdmol_positions
++from .utils.datasets import PackedConformationDataset
++from .utils.chem import set_rdmol_positions
+ 
+ 
+ class PropertyCalculator(object):
+diff --git a/models/__init__.py b/models/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/models/common.py b/models/common.py
+index 59444ec..5a04a1b 100644
+--- a/models/common.py
++++ b/models/common.py
+@@ -7,7 +7,7 @@ from torch_scatter import scatter_mean, scatter_add, scatter_max
+ from torch_sparse import coalesce
+ from torch_geometric.utils import to_dense_adj, dense_to_sparse
+ 
+-from utils.chem import BOND_TYPES
++from ..utils.chem import BOND_TYPES
+ 
+ 
+ class MeanReadout(nn.Module):
+diff --git a/models/encoder/edge.py b/models/encoder/edge.py
+index 9e11973..1399062 100644
+--- a/models/encoder/edge.py
++++ b/models/encoder/edge.py
+@@ -7,7 +7,7 @@ from torch_geometric.data import Data
+ from torch_geometric.utils import to_dense_adj, dense_to_sparse
+ from math import pi as PI
+ 
+-from utils.chem import BOND_TYPES
++from ...utils.chem import BOND_TYPES
+ from ..common import MeanReadout, SumReadout, MultiLayerPerceptron
+ 
+ 
+diff --git a/models/encoder/schnet.py b/models/encoder/schnet.py
+index 8057216..0561e06 100644
+--- a/models/encoder/schnet.py
++++ b/models/encoder/schnet.py
+@@ -7,7 +7,7 @@ from torch_geometric.data import Data
+ from torch_geometric.utils import to_dense_adj, dense_to_sparse
+ from math import pi as PI
+ 
+-from utils.chem import BOND_TYPES
++from ...utils.chem import BOND_TYPES
+ from ..common import MeanReadout, SumReadout, MultiLayerPerceptron
+ 
+ 
+diff --git a/models/epsnet/dualenc.py b/models/epsnet/dualenc.py
+index 259d638..dd04634 100644
+--- a/models/epsnet/dualenc.py
++++ b/models/epsnet/dualenc.py
+@@ -7,7 +7,7 @@ import numpy as np
+ from numpy import pi as PI
+ from tqdm.auto import tqdm
+ 
+-from utils.chem import BOND_TYPES
++from ...utils.chem import BOND_TYPES
+ from ..common import MultiLayerPerceptron, assemble_atom_pair_feature, generate_symmetric_edge_noise, extend_graph_order_radius
+ from ..encoder import SchNetEncoder, GINEncoder, get_edge_encoder
+ from ..geometry import get_distance, get_angle, get_dihedral, eq_transform
+diff --git a/test.py b/test.py
+index dce3b7e..2baea24 100644
+--- a/test.py
++++ b/test.py
+@@ -7,10 +7,10 @@ from glob import glob
+ from tqdm.auto import tqdm
+ from easydict import EasyDict
+ 
+-from models.epsnet import *
+-from utils.datasets import *
+-from utils.transforms import *
+-from utils.misc import *
++from .models.epsnet import *
++from .utils.datasets import *
++from .utils.transforms import *
++from .utils.misc import *
+ 
+ 
+ def num_confs(num:str):
+@@ -24,7 +24,7 @@ def num_confs(num:str):
+ 
+ if __name__ == '__main__':
+     parser = argparse.ArgumentParser()
+-    parser.add_argument('ckpt', type=str, help='path for loading the checkpoint')
++    parser.add_argument('--ckpt', type=str, help='path for loading the checkpoint')
+     parser.add_argument('--save_traj', action='store_true', default=False,
+                     help='whether store the whole trajectory for sampling')
+     parser.add_argument('--resume', type=str, default=None)
+@@ -61,6 +61,7 @@ if __name__ == '__main__':
+     output_dir = get_new_log_dir(log_dir, 'sample', tag=args.tag)
+     logger = get_logger('test', output_dir)
+     logger.info(args)
++    os.makedirs(args.out_dir, exist_ok=True)
+ 
+     # Datasets and loaders
+     logger.info('Loading datasets...')
+@@ -132,7 +133,7 @@ if __name__ == '__main__':
+                 results.append(data)
+                 done_smiles.add(data.smiles)
+ 
+-                save_path = os.path.join(output_dir, 'samples_%d.pkl' % i)
++                save_path = os.path.join(args.out_dir, 'samples_%d.pkl' % i)
+                 logger.info('Saving samples to: %s' % save_path)
+                 with open(save_path, 'wb') as f:
+                     pickle.dump(results, f)
+@@ -142,7 +143,7 @@ if __name__ == '__main__':
+                 clip_local = 20
+                 logger.warning('Retrying with local clipping.')
+ 
+-    save_path = os.path.join(output_dir, 'samples_all.pkl')
++    save_path = os.path.join(args.out_dir, 'samples_all.pkl')
+     logger.info('Saving samples to: %s' % save_path)
+ 
+     def get_mol_key(data):
+diff --git a/train.py b/train.py
+index 3cdf5ab..384b72a 100644
+--- a/train.py
++++ b/train.py
+@@ -10,11 +10,11 @@ import torch.utils.tensorboard
+ from torch.nn.utils import clip_grad_norm_
+ from torch_geometric.data import DataLoader
+ 
+-from models.epsnet import get_model
+-from utils.datasets import ConformationDataset
+-from utils.transforms import *
+-from utils.misc import *
+-from utils.common import get_optimizer, get_scheduler
++from .models.epsnet import get_model
++from .utils.datasets import ConformationDataset
++from .utils.transforms import *
++from .utils.misc import *
++from .utils.common import get_optimizer, get_scheduler
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/utils/__init__.py b/utils/__init__.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/utils/chem.py b/utils/chem.py
+index e93e60c..f666a06 100644
+--- a/utils/chem.py
++++ b/utils/chem.py
+@@ -1,6 +1,5 @@
+ from copy import deepcopy
+ import torch
+-from torchvision.transforms.functional import to_tensor
+ import rdkit
+ import rdkit.Chem.Draw
+ from rdkit import Chem
+@@ -28,7 +27,7 @@ def draw_mol_image(rdkit_mol, tensor=False):
+     rdkit_mol.UpdatePropertyCache()
+     img = rdkit.Chem.Draw.MolToImage(rdkit_mol, kekulize=False)
+     if tensor:
+-        return to_tensor(img)
++        return torch.tensor(img)
+     else:
+         return img
+ 
+diff --git a/utils/datasets.py b/utils/datasets.py
+index 1a526e8..9c8dff4 100644
+--- a/utils/datasets.py
++++ b/utils/datasets.py
+@@ -335,8 +335,10 @@ def rdmol_to_data(mol:Mol, smiles=None, data_cls=Data):
+     if smiles is None:
+         smiles = Chem.MolToSmiles(mol)
+ 
++    # Just save the structure as a molblock string, save storage for embedding extraction
++    molblock = Chem.MolToMolBlock(mol)
+     data = data_cls(atom_type=z, pos=pos, edge_index=edge_index, edge_type=edge_type,
+-                rdmol=copy.deepcopy(mol), smiles=smiles)
++                rdmol=molblock, smiles=smiles)
+     #data.nx = to_networkx(data, to_undirected=True)
+ 
+     return data
+diff --git a/utils/evaluation/__init__.py b/utils/evaluation/__init__.py
+new file mode 100644
+index 0000000..e69de29

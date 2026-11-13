@@ -10,3 +10,8 @@ test/
 __pycache__/
 *.pyc
 .DS_Store
+
+# external/ holds cloned upstream repos and downloaded checkpoints
+external/geodiff/
+external/moleculesde/
+external/checkpoints/

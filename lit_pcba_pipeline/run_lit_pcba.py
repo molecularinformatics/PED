@@ -116,8 +116,9 @@ def main() -> None:
     ap.add_argument("--modes", nargs="+", default=["2D", "3D", "concat"],
                     choices=["2D", "3D", "concat"], help="GeoDiff embedding modes")
     ap.add_argument("--refs_csv", default=DEFAULT_REFS_CSV)
-    ap.add_argument("--geodiff_ckpt", default=os.path.join(REPO_ROOT, "external", "geodiff",
-                                                           "checkpoints", "drugs_default.pt"))
+    ap.add_argument("--geodiff_ckpt",
+                    default=os.path.join(REPO_ROOT, "external", "checkpoints", "geodiff",
+                                         "model", "checkpoints", "drugs_default.pt"))
     ap.add_argument("--molformer_model", default="ibm/MoLFormer-XL-both-10pct")
     ap.add_argument("--python", default=sys.executable)
     ap.add_argument("--device", default="cuda:0")

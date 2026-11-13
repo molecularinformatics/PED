@@ -1,0 +1,101 @@
+diff --git a/Geom3D/datasets/__init__.py b/Geom3D/datasets/__init__.py
+index 78f96b6..d55daa4 100644
+--- a/Geom3D/datasets/__init__.py
++++ b/Geom3D/datasets/__init__.py
+@@ -1,12 +1,12 @@
+-from Geom3D.datasets.dataset_utils import graph_data_obj_to_nx_simple, nx_to_graph_data_obj_simple, atom_type_count
++from .dataset_utils import graph_data_obj_to_nx_simple, nx_to_graph_data_obj_simple, atom_type_count
+ 
+-from Geom3D.datasets.dataset_PCQM4Mv2 import PCQM4Mv2
++from .dataset_PCQM4Mv2 import PCQM4Mv2
+ 
+-from Geom3D.datasets.dataset_QM9 import MoleculeDatasetQM9
++from .dataset_QM9 import MoleculeDatasetQM9
+ 
+-from Geom3D.datasets.dataset_MD17 import DatasetMD17
++from .dataset_MD17 import DatasetMD17
+ 
+-from Geom3D.datasets.dataset_3D import Molecule3DDataset
+-from Geom3D.datasets.dataset_3D_Radius import MoleculeDataset3DRadius
++from .dataset_3D import Molecule3DDataset
++from .dataset_3D_Radius import MoleculeDataset3DRadius
+ 
+-from Geom3D.datasets.dataset_MoleculeNet_2D import MoleculeNetDataset2D
++from .dataset_MoleculeNet_2D import MoleculeNetDataset2D
+diff --git a/Geom3D/datasets/dataset_MoleculeNet_2D.py b/Geom3D/datasets/dataset_MoleculeNet_2D.py
+index 100f5bf..4b613e3 100644
+--- a/Geom3D/datasets/dataset_MoleculeNet_2D.py
++++ b/Geom3D/datasets/dataset_MoleculeNet_2D.py
+@@ -7,7 +7,7 @@ from rdkit.Chem import AllChem
+ from itertools import repeat
+ import torch
+ from torch_geometric.data import Data, InMemoryDataset
+-from Geom3D.datasets.dataset_utils import mol_to_graph_data_obj_simple_2D
++from .dataset_utils import mol_to_graph_data_obj_simple_2D
+ from .dataset_3D import extend_graph
+ 
+ 
+diff --git a/Geom3D/datasets/dataset_PCQM4Mv2.py b/Geom3D/datasets/dataset_PCQM4Mv2.py
+index b7fa0b9..186796c 100644
+--- a/Geom3D/datasets/dataset_PCQM4Mv2.py
++++ b/Geom3D/datasets/dataset_PCQM4Mv2.py
+@@ -6,7 +6,7 @@ from tqdm import tqdm
+ from rdkit import Chem
+ from itertools import repeat
+ from torch_geometric.data import InMemoryDataset
+-from Geom3D.datasets.dataset_utils import mol_to_graph_data_obj_simple_3D
++from .dataset_utils import mol_to_graph_data_obj_simple_3D
+ 
+ 
+ class PCQM4Mv2(InMemoryDataset):
+diff --git a/Geom3D/datasets/dataset_QM9.py b/Geom3D/datasets/dataset_QM9.py
+index ccc8d10..c732d65 100644
+--- a/Geom3D/datasets/dataset_QM9.py
++++ b/Geom3D/datasets/dataset_QM9.py
+@@ -8,7 +8,7 @@ from rdkit.Chem import AllChem
+ from scipy.constants import physical_constants
+ from torch_geometric.data import (Data, InMemoryDataset, download_url, extract_zip)
+ 
+-from Geom3D.datasets.dataset_utils import mol_to_graph_data_obj_simple_3D
++from .dataset_utils import mol_to_graph_data_obj_simple_3D
+ 
+ 
+ class MoleculeDatasetQM9(InMemoryDataset):
+diff --git a/Geom3D/models/molecule_gnn_model.py b/Geom3D/models/molecule_gnn_model.py
+index 2674613..412cebd 100644
+--- a/Geom3D/models/molecule_gnn_model.py
++++ b/Geom3D/models/molecule_gnn_model.py
+@@ -1,12 +1,11 @@
+ import torch
+ import torch.nn as nn
+ import torch.nn.functional as F
+-from torch_geometric.nn import (GlobalAttention, MessagePassing, Set2Set,
++from torch_geometric.nn import (MessagePassing,
+                                 global_add_pool, global_max_pool,
+                                 global_mean_pool)
+ from torch_geometric.nn.inits import glorot, zeros
+-from torch_geometric.utils import add_self_loops, degree, softmax
+-from torch_scatter import scatter_add
++from torch_geometric.utils import degree, softmax
+ from ogb.graphproppred.mol_encoder import AtomEncoder, BondEncoder
+ 
+ 
+diff --git a/Geom3D/models/schnet.py b/Geom3D/models/schnet.py
+index 108d3d9..d86115f 100644
+--- a/Geom3D/models/schnet.py
++++ b/Geom3D/models/schnet.py
+@@ -1,6 +1,3 @@
+-import os
+-import os.path as osp
+-import warnings
+ from math import pi as PI
+ 
+ import ase
+@@ -8,7 +5,6 @@ import numpy as np
+ import torch
+ import torch.nn.functional as F
+ from torch.nn import Embedding, Linear, ModuleList, Sequential
+-from torch_geometric.data.makedirs import makedirs
+ from torch_geometric.nn import MessagePassing, radius_graph
+ from torch_scatter import scatter
+ 

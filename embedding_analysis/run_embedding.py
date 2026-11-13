@@ -122,11 +122,11 @@ def main() -> None:
     ap.add_argument("--modes", nargs="+", default=["2D", "3D", "concat", "concat_norm"],
                     help="Dual-encoder modes for GeoDiff and MoleculeSDE")
     ap.add_argument("--geodiff_ckpt",
-                    default=os.path.join(REPO_ROOT, "external", "geodiff", "checkpoints",
-                                         "drugs_default.pt"))
+                    default=os.path.join(REPO_ROOT, "external", "checkpoints", "geodiff",
+                                         "model", "checkpoints", "drugs_default.pt"))
     ap.add_argument("--sde_ckpt",
-                    default=os.path.join(REPO_ROOT, "external", "moleculesde", "checkpoints",
-                                         "vp.pth"))
+                    default=os.path.join(REPO_ROOT, "external", "checkpoints", "moleculesde",
+                                         "model_complete.pth"))
     ap.add_argument("--molformer_model", default="ibm/MoLFormer-XL-both-10pct")
     ap.add_argument("--unimol_size", default="164m")
     ap.add_argument("--ecfp_radius", type=int, default=2)

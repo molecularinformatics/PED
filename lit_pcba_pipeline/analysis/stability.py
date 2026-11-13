@@ -99,7 +99,7 @@ def make_figure(ped: pd.DataFrame, base: pd.DataFrame, methods: Dict[str, str],
         ax.set_xlim(*xlim0)
         ax.set_yticks(ypos)
         ax.set_yticklabels(names, fontsize=6.5, color=INK)
-        ax.annotate(f"mean {mean_d:+.2f}\n95% CI [{lo:+.2f}, {hi:+.2f}] (shaded)",
+        ax.annotate(f"mean {mean_d:+.2f}\n95% CI [{lo:+.2f}, {hi:+.2f}]",
                     xy=(0.97, 0.015), xycoords="axes fraction", ha="right",
                     va="bottom", fontsize=6.2, color=INK_2)
         off = 0.02 * (xlim0[1] - xlim0[0])
