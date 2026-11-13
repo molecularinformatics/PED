@@ -1,0 +1,65 @@
+{
+  "version": 3,
+  "run_type": "lib_invent_reinforcement_learning",
+  "logging": {
+    "logging_path": "results/generation/libinvent_geodiff_3d/progress.log",
+    "result_folder": "results/generation/libinvent_geodiff_3d/results",
+    "job_name": "libinvent_geodiff_3d",
+    "job_id": "libinvent_geodiff_3d",
+    "sender": "http://127.0.0.1",
+    "recipient": "local"
+  },
+  "parameters": {
+    "actor": "generation/external/priors/library_design.prior",
+    "critic": "generation/external/priors/library_design.prior",
+    "scaffolds": [
+      "[*:0]c1ccc(cc1)[*:1]"
+    ],
+    "n_steps": 5000,
+    "learning_rate": 0.0001,
+    "batch_size": 128,
+    "randomize_scaffolds": false,
+    "learning_strategy": {
+      "name": "dap",
+      "parameters": {
+        "sigma": 128
+      }
+    },
+    "scoring_strategy": {
+      "name": "lib_invent",
+      "scoring_function": {
+        "name": "custom_product",
+        "parallel": false,
+        "parameters": [
+          {
+            "component_type": "geodiff_distance",
+            "name": "GeoDiff 3D Euclidean PED",
+            "weight": 1,
+            "specific_parameters": {
+              "reference_smiles": "CC(C)(C)c1cc(C(=O)N2CCC[C@H]2C(=O)Nc2cccc(C#N)c2)c(O)c(C(C)(C)C)c1",
+              "ckpt_path": "external/checkpoints/geodiff/model/checkpoints/drugs_default.pt",
+              "embedding_mode": "3D",
+              "distance_metric": "euclidean",
+              "transformation": {
+                "transformation_type": "reverse_sigmoid",
+                "low": 1.0,
+                "high": 10.0,
+                "k": 0.25
+              }
+            }
+          }
+        ]
+      },
+      "diversity_filter": {
+        "name": "NoFilterWithPenalty",
+        "bucket_size": 25,
+        "minscore": 0.4,
+        "minsimilarity": 0.4
+      },
+      "reaction_filter": {
+        "type": "selective",
+        "reactions": []
+      }
+    }
+  }
+}

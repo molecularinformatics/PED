@@ -1,0 +1,64 @@
+{
+  "version": 3,
+  "run_type": "lib_invent_reinforcement_learning",
+  "logging": {
+    "logging_path": "results/generation/libinvent_molformer/progress.log",
+    "result_folder": "results/generation/libinvent_molformer/results",
+    "job_name": "libinvent_molformer",
+    "job_id": "libinvent_molformer",
+    "sender": "http://127.0.0.1",
+    "recipient": "local"
+  },
+  "parameters": {
+    "actor": "generation/external/priors/library_design.prior",
+    "critic": "generation/external/priors/library_design.prior",
+    "scaffolds": [
+      "[*:0]c1ccc(cc1)[*:1]"
+    ],
+    "n_steps": 5000,
+    "learning_rate": 0.0001,
+    "batch_size": 128,
+    "randomize_scaffolds": false,
+    "learning_strategy": {
+      "name": "dap",
+      "parameters": {
+        "sigma": 128
+      }
+    },
+    "scoring_strategy": {
+      "name": "lib_invent",
+      "scoring_function": {
+        "name": "custom_product",
+        "parallel": false,
+        "parameters": [
+          {
+            "component_type": "molformer_distance",
+            "name": "MoLFormer Euclidean PED",
+            "weight": 1,
+            "specific_parameters": {
+              "reference_smiles": "CC(C)(C)c1cc(C(=O)N2CCC[C@H]2C(=O)Nc2cccc(C#N)c2)c(O)c(C(C)(C)C)c1",
+              "model_name": "ibm/MoLFormer-XL-both-10pct",
+              "distance_metric": "euclidean",
+              "transformation": {
+                "transformation_type": "reverse_sigmoid",
+                "low": 5.0,
+                "high": 17.0,
+                "k": 0.25
+              }
+            }
+          }
+        ]
+      },
+      "diversity_filter": {
+        "name": "NoFilterWithPenalty",
+        "bucket_size": 25,
+        "minscore": 0.4,
+        "minsimilarity": 0.4
+      },
+      "reaction_filter": {
+        "type": "selective",
+        "reactions": []
+      }
+    }
+  }
+}

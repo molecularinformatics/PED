@@ -1,0 +1,55 @@
+{
+  "version": 3,
+  "run_type": "reinforcement_learning",
+  "logging": {
+    "sender": "http://127.0.0.1",
+    "recipient": "local",
+    "logging_frequency": 10,
+    "logging_path": "results/generation/reinvent_roshambo2/progress.log",
+    "result_folder": "results/generation/reinvent_roshambo2/results",
+    "job_name": "reinvent_roshambo2",
+    "job_id": "reinvent_roshambo2"
+  },
+  "parameters": {
+    "scoring_function": {
+      "name": "custom_product",
+      "parallel": false,
+      "parameters": [
+        {
+          "component_type": "roshambo2_similarity",
+          "name": "ROSHAMBO2 combination similarity",
+          "weight": 1,
+          "specific_parameters": {
+            "reference_path": "data/reference.sdf",
+            "num_confs": 30,
+            "num_isomers": 4,
+            "num_processes": 16,
+            "combination_param": 0.5,
+            "backend": "cpp",
+            "random_seed": 42
+          }
+        }
+      ]
+    },
+    "diversity_filter": {
+      "name": "IdenticalMurckoScaffold",
+      "bucket_size": 25,
+      "minscore": 0.4,
+      "minsimilarity": 0.4
+    },
+    "inception": {
+      "smiles": [],
+      "memory_size": 100,
+      "sample_size": 10
+    },
+    "reinforcement_learning": {
+      "prior": "generation/external/priors/augmented.prior",
+      "agent": "generation/external/priors/augmented.prior",
+      "n_steps": 10000,
+      "sigma": 128,
+      "learning_rate": 0.0001,
+      "batch_size": 128,
+      "margin_threshold": 50
+    }
+  }
+}

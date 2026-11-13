@@ -1,0 +1,62 @@
+{
+  "version": 3,
+  "run_type": "lib_invent_reinforcement_learning",
+  "logging": {
+    "logging_path": "results/generation/libinvent_roshambo2/progress.log",
+    "result_folder": "results/generation/libinvent_roshambo2/results",
+    "job_name": "libinvent_roshambo2",
+    "job_id": "libinvent_roshambo2",
+    "sender": "http://127.0.0.1",
+    "recipient": "local"
+  },
+  "parameters": {
+    "actor": "generation/external/priors/library_design.prior",
+    "critic": "generation/external/priors/library_design.prior",
+    "scaffolds": [
+      "[*:0]c1ccc(cc1)[*:1]"
+    ],
+    "n_steps": 5000,
+    "learning_rate": 0.0001,
+    "batch_size": 128,
+    "randomize_scaffolds": false,
+    "learning_strategy": {
+      "name": "dap",
+      "parameters": {
+        "sigma": 128
+      }
+    },
+    "scoring_strategy": {
+      "name": "lib_invent",
+      "scoring_function": {
+        "name": "custom_product",
+        "parallel": false,
+        "parameters": [
+          {
+            "component_type": "roshambo2_similarity",
+            "name": "ROSHAMBO2 combination similarity",
+            "weight": 1,
+            "specific_parameters": {
+              "reference_path": "data/reference.sdf",
+              "num_confs": 30,
+              "num_isomers": 4,
+              "num_processes": 16,
+              "combination_param": 0.5,
+              "backend": "cpp",
+              "random_seed": 42
+            }
+          }
+        ]
+      },
+      "diversity_filter": {
+        "name": "NoFilterWithPenalty",
+        "bucket_size": 25,
+        "minscore": 0.4,
+        "minsimilarity": 0.4
+      },
+      "reaction_filter": {
+        "type": "selective",
+        "reactions": []
+      }
+    }
+  }
+}

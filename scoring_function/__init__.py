@@ -1,2 +1,0 @@
-from reinvent_scoring.scoring.score_components.embedding.molformer_distance import MolformerDistance
-from reinvent_scoring.scoring.score_components.embedding.geodiff_distance import GeoDiffDistance

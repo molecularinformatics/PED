@@ -1,0 +1,57 @@
+{
+  "version": 3,
+  "run_type": "reinforcement_learning",
+  "logging": {
+    "sender": "http://127.0.0.1",
+    "recipient": "local",
+    "logging_frequency": 10,
+    "logging_path": "results/generation/reinvent_molformer/progress.log",
+    "result_folder": "results/generation/reinvent_molformer/results",
+    "job_name": "reinvent_molformer",
+    "job_id": "reinvent_molformer"
+  },
+  "parameters": {
+    "scoring_function": {
+      "name": "custom_product",
+      "parallel": false,
+      "parameters": [
+        {
+          "component_type": "molformer_distance",
+          "name": "MoLFormer Euclidean PED",
+          "weight": 1,
+          "specific_parameters": {
+            "reference_smiles": "CC(C)(C)c1cc(C(=O)N2CCC[C@H]2C(=O)Nc2cccc(C#N)c2)c(O)c(C(C)(C)C)c1",
+            "model_name": "ibm/MoLFormer-XL-both-10pct",
+            "distance_metric": "euclidean",
+            "transformation": {
+              "transformation_type": "reverse_sigmoid",
+              "low": 5.0,
+              "high": 17.0,
+              "k": 0.25
+            }
+          }
+        }
+      ]
+    },
+    "diversity_filter": {
+      "name": "IdenticalMurckoScaffold",
+      "bucket_size": 25,
+      "minscore": 0.4,
+      "minsimilarity": 0.4
+    },
+    "inception": {
+      "smiles": [],
+      "memory_size": 100,
+      "sample_size": 10
+    },
+    "reinforcement_learning": {
+      "prior": "generation/external/priors/augmented.prior",
+      "agent": "generation/external/priors/augmented.prior",
+      "n_steps": 10000,
+      "sigma": 128,
+      "learning_rate": 0.0001,
+      "batch_size": 128,
+      "margin_threshold": 50
+    }
+  }
+}

@@ -1,0 +1,13 @@
+diff --git a/roshambo2/prepare.py b/roshambo2/prepare.py
+index c74c7f8..55a0cc9 100644
+--- a/roshambo2/prepare.py
++++ b/roshambo2/prepare.py
+@@ -56,7 +56,7 @@ def _process_mol(mol, keep_smiles=True):
+ def _process_chunk(chunk, color, color_generator, keep_smiles, remove_Hs_before_color_assignment, quiet, id):
+ 
+     N=len(chunk)
+-    for i in tqdm(range(N), disable=quiet, position=id, desc=f"preparing:cpu:{id}"):
++    for i in range(N):
+         mol = chunk[i]
+         if color_generator is not None:
+             chunk[i]= _process_mol_color(
