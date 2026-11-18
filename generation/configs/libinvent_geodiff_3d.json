@@ -13,7 +13,7 @@
     "actor": "generation/external/priors/library_design.prior",
     "critic": "generation/external/priors/library_design.prior",
     "scaffolds": [
-      "[*:0]c1ccc(cc1)[*:1]"
+      "CC=CC([*:0])=O"
     ],
     "n_steps": 5000,
     "learning_rate": 0.0001,
@@ -22,13 +22,13 @@
     "learning_strategy": {
       "name": "dap",
       "parameters": {
-        "sigma": 128
+        "sigma": 120
       }
     },
     "scoring_strategy": {
       "name": "lib_invent",
       "scoring_function": {
-        "name": "custom_product",
+        "name": "custom_sum",
         "parallel": false,
         "parameters": [
           {
@@ -36,14 +36,14 @@
             "name": "GeoDiff 3D Euclidean PED",
             "weight": 1,
             "specific_parameters": {
-              "reference_smiles": "CC(C)(C)c1cc(C(=O)N2CCC[C@H]2C(=O)Nc2cccc(C#N)c2)c(O)c(C(C)(C)C)c1",
+              "reference_smiles": "C/C=C/C(=O)N[C@H]1CCCN(c2c(F)cc(C(N)=O)c3[nH]c(C)c(C)c23)C1",
               "ckpt_path": "external/checkpoints/geodiff/model/checkpoints/drugs_default.pt",
               "embedding_mode": "3D",
               "distance_metric": "euclidean",
               "transformation": {
                 "transformation_type": "reverse_sigmoid",
-                "low": 1.0,
-                "high": 10.0,
+                "low": 1,
+                "high": 10,
                 "k": 0.25
               }
             }
@@ -53,7 +53,7 @@
       "diversity_filter": {
         "name": "NoFilterWithPenalty",
         "bucket_size": 25,
-        "minscore": 0.4,
+        "minscore": 0.0,
         "minsimilarity": 0.4
       },
       "reaction_filter": {

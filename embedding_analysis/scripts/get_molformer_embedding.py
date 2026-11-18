@@ -17,15 +17,25 @@ def mean_pool_last_hidden(last_hidden_state, attention_mask):
     return summed / lengths
 
 
-def get_pretrained_transformer(model_name):
-    if model_name == "ibm/MoLFormer-XL-both-10pct":
+# The checkpoint used in the paper. IBM moved the repository from ibm/ to
+# ibm-research/, so both names resolve; the revision is what fixes the weights
+# and, with trust_remote_code, the modelling code that comes with them.
+MOLFORMER_NAMES = ("ibm-research/MoLFormer-XL-both-10pct", "ibm/MoLFormer-XL-both-10pct")
+MOLFORMER_REVISION = "361063d0ad524ef77cf39b08469f6be770dc550f"
+
+
+def get_pretrained_transformer(model_name, revision=None):
+    if model_name in MOLFORMER_NAMES:
+        revision = revision or MOLFORMER_REVISION
         model = AutoModel.from_pretrained(
             model_name,
+            revision=revision,
             deterministic_eval=True,
             trust_remote_code=True,
         )
         tokenizer = AutoTokenizer.from_pretrained(
             model_name,
+            revision=revision,
             trust_remote_code=True,
         )
     elif model_name == "DeepChem/MoLFormer-c3-1.1B":
@@ -38,8 +48,10 @@ def get_pretrained_transformer(model_name):
             trust_remote_code=True,
         )
     else:
-        model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
-        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        model = AutoModel.from_pretrained(model_name, revision=revision,
+                                          trust_remote_code=True)
+        tokenizer = AutoTokenizer.from_pretrained(model_name, revision=revision,
+                                                  trust_remote_code=True)
 
     model.eval()
     return tokenizer, model
@@ -74,7 +86,8 @@ def save_molformer_embeddings_multi_gpu(
     csv_path: str,
     cache_dir: str,
     smiles_col: str = "smiles",
-    model_name: str = "ibm/MoLFormer-XL-both-10pct",
+    model_name: str = MOLFORMER_NAMES[0],
+    revision: str = None,
     batch_size: int = 256,
 ):
     is_dist, rank, world_size, local_rank = _dist_init()
@@ -116,7 +129,7 @@ def save_molformer_embeddings_multi_gpu(
         pass
 
     # ---------- model ----------
-    tokenizer, model = get_pretrained_transformer(model_name)
+    tokenizer, model = get_pretrained_transformer(model_name, revision)
     model = model.to(device)
 
     d = int(model.config.hidden_size)
@@ -189,7 +202,9 @@ def main():
     ap.add_argument("--csv_path", type=str, required=True)
     ap.add_argument("--cache_dir", type=str, required=True)
     ap.add_argument("--smiles_col", type=str, default="smiles")
-    ap.add_argument("--model_name", type=str, default="ibm/MoLFormer-XL-both-10pct")
+    ap.add_argument("--model_name", type=str, default=MOLFORMER_NAMES[0])
+    ap.add_argument("--revision", type=str, default=None,
+                    help=f"Hub revision; defaults to {MOLFORMER_REVISION} for MoLFormer-XL")
     ap.add_argument("--batch_size", type=int, default=256)
     args = ap.parse_args()
 
@@ -198,6 +213,7 @@ def main():
         cache_dir=args.cache_dir,
         smiles_col=args.smiles_col,
         model_name=args.model_name,
+        revision=args.revision,
         batch_size=args.batch_size,
     )
 

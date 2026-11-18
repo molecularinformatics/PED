@@ -12,30 +12,43 @@ The official implementation of Advancing Ligand-based Virtual Screening and Mole
 
 ## Environments
 
-Two environments, split where the dependencies genuinely conflict rather than per
-model. `ped-embed` covers GeoDiff, MoLFormer, MoleculeSDE, ECFP and all analysis, and
-serves both pipelines. `ped-unimol` exists only because `unimol_tools` conflicts with
-the PyG stack the other models need.
+Four environments, split where the dependencies genuinely conflict rather than per
+model. Each pipeline's README says which one it needs.
+
+| Environment | Covers | Created with |
+|---|---|---|
+| `ped_torch` | GeoDiff, MoLFormer, MoleculeSDE, ECFP, every analysis, and the LIT-PCBA pipeline | `conda env create -f environment.yml` |
+| `ped-unimol` | Uni-Mol2 only: `unimol_tools` conflicts with the PyG stack the other models need | see below |
+| `ped-generation` | REINVENT 3.2, LibINVENT and their reward components | `conda env create -f generation/environment.yml` |
+| `synformer` | the SynFormer runs | `conda env create -f generation/synformer/env.yml` |
+
+Boltz-2 needs no environment file; `generation/boltz2/README.md` gives the one
+pinned pip command.
 
 ```bash
 git clone https://github.com/molecularinformatics/PED.git
 cd PED
 
-conda env create -f environment.yml      # ped-embed
+conda env create -f environment.yml      # ped_torch
 conda activate ped_torch
 ```
 
 For Uni-Mol2, in a separate environment:
 
 ```bash
-git clone https://github.com/deepmodeling/Uni-Mol.git
-cd Uni-Mol/unimol_tools
-pip install --no-deps -e .
-pip install numba addict
+conda create -n ped-unimol python=3.10 -y && conda activate ped-unimol
+pip install unimol_tools==0.1.5 numba addict
 ```
 
 `run_embedding.py --python_unimol /path/to/that/env/bin/python` then uses it for the
-Uni-Mol2 stages only.
+Uni-Mol2 stages only, with `--model_name unimolv2 --model_size 164m`.
+
+The MoLFormer checkpoint is pinned by revision
+(`ibm-research/MoLFormer-XL-both-10pct` at `361063d0ad524ef77cf39b08469f6be770dc550f`).
+IBM moved the repository from `ibm/` to `ibm-research/`; both names resolve, and
+`--revision` overrides the pin. Because the checkpoint is loaded with
+`trust_remote_code=True`, the revision fixes its modelling code as well as its
+weights.
 
 
 ## External models
@@ -80,8 +93,9 @@ resumes rather than repeats on a rerun.
   folders to EF1% tables and figures.
   `python lit_pcba_pipeline/run_lit_pcba.py --targets all`
 
-- [scoring_function](scoring_function/): PED-based scoring component for molecular
-  generation with reinforcement learning.
+- [generation](generation/): PED-based rewards for molecular generation with
+  reinforcement learning, the run configurations, and Boltz-2 affinity prediction
+  for the generated molecules.
 
 - [external](external/): pinned clones and patches for GeoDiff and MoleculeSDE.
 
@@ -101,3 +115,27 @@ Pipeline outputs go to `results/`, which is gitignored.
       url={https://arxiv.org/abs/2604.24474}, 
 }
 ```
+
+
+## Acknowledgements
+
+This work builds on pretrained models and generative frameworks released by their
+authors. We thank the teams behind them.
+
+Pretrained encoders:
+
+- [GeoDiff](https://github.com/MinkaiXu/GeoDiff), a diffusion model for molecular conformation generation
+- [MoLFormer](https://github.com/IBM/molformer), a SMILES Transformer pretrained with masked language modeling
+- [MoleculeSDE](https://github.com/chao1224/MoleculeSDE), a joint 2D and 3D multimodal pretraining framework
+- [Uni-Mol2](https://github.com/deepmodeling/Uni-Mol), a large-scale 3D molecular foundation model
+
+Generative frameworks:
+
+- [REINVENT](https://github.com/MolecularAI/Reinvent), reinforcement learning over SMILES
+- [LibINVENT](https://github.com/MolecularAI/Lib-INVENT), scaffold decoration under a fixed core
+- [SynFormer](https://github.com/wenhao-gao/synformer), generation of synthesizable molecules through synthesis programs
+
+Scoring:
+
+- [ROSHAMBO2](https://github.com/molecularinformatics/roshambo2), 3D shape and pharmacophore overlay against a reference ligand
+- [Boltz-2](https://github.com/jwohlwend/boltz), co-folding of a protein-ligand complex with an affinity prediction

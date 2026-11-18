@@ -2,7 +2,7 @@
 
 GeoDiff and MoleculeSDE are used as libraries, not as packages, so each has to be
 cloned at a fixed commit and patched before its encoders can be imported. `setup.sh`
-does that and verifies the result; nothing here needs to be done by hand.
+does that and verifies the result.
 
 MoLFormer needs no repository, only its HuggingFace checkpoint, and Uni-Mol2 is
 installed as `unimol_tools` in its own environment.
@@ -66,8 +66,7 @@ Neither patch touches READMEs, configs or training scripts.
 | `checkpoints/moleculesde/model_complete.pth` | MoleculeSDE, variance-preserving |
 
 The GeoDiff loader resolves its config by globbing `*.yml` one directory above the
-checkpoint, so `model/drugs_default.yml` beside `model/checkpoints/` is required, not
-cosmetic.
+checkpoint, so `model/drugs_default.yml` beside `model/checkpoints/` is required.
 
 `checksums.txt` is verified on every run. The cloned repositories and the
 checkpoints are gitignored; this folder tracks only `setup.sh`, the two patches,

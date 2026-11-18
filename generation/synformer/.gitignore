@@ -1,0 +1,11 @@
+# Artefacts downloaded from the SynFormer release (see README.md)
+data/trained_weights/
+data/processed/
+# Run outputs
+logs/
+results/
+__pycache__/
+*.pyc
+*.egg-info/
+# Downloaded at runtime by the TDC SA scorer
+oracle/

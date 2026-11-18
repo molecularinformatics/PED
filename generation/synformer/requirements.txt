@@ -1,0 +1,27 @@
+rdkit>=2023.09
+pytdc
+# pytdc still imports pkg_resources, which setuptools dropped in 81
+setuptools<81
+
+torch>=2.0
+pytorch-lightning>=2.0
+tensorboard
+einops
+scikit-learn
+
+numpy
+pandas
+pyyaml
+types-pyyaml
+joblib
+omegaconf
+gitpython
+cryptography
+rich
+
+matplotlib
+seaborn
+tqdm
+jupyterlab
+ipywidgets
+click

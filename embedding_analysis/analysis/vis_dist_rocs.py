@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy import stats
 
 from pathlib import Path
 
@@ -67,11 +68,18 @@ def plot_boxpanels(
     rocs_step=0.1,
     xlabel="ROCS 3D Similarity Group",
     ylabel_model="MoLFormer",
+    logy=False,
 ):
     df_plot, group_order, bins = add_rocs_group(df, rocs_col=rocs_col, step=rocs_step)
 
-    corr_cosine = np.corrcoef(df[cosine_col], df[rocs_col])[0, 1]
-    corr_euclidean = np.corrcoef(df[euclidean_col], df[rocs_col])[0, 1]
+    def corr_pair(col):
+        """Pearson and Spearman against the ROCS column, on rows where both exist."""
+        m = df[[col, rocs_col]].dropna()
+        return (stats.pearsonr(m[col], m[rocs_col])[0],
+                stats.spearmanr(m[col], m[rocs_col])[0])
+
+    corr_cosine, rho_cosine = corr_pair(cosine_col)
+    corr_euclidean, rho_euclidean = corr_pair(euclidean_col)
 
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
@@ -105,7 +113,8 @@ def plot_boxpanels(
     axes[0].set_ylabel(f"{ylabel_model} Cosine Distance", fontsize=12)
     axes[0].tick_params(axis="x", rotation=90)
     axes[0].text(
-        0.98, 0.97, f"Pearson r = {corr_cosine:.2f}",
+        0.98, 0.97,
+        f"Pearson $r$ = {corr_cosine:.2f}\nSpearman $\\rho$ = {rho_cosine:.2f}",
         transform=axes[0].transAxes,
         fontsize=11,
         verticalalignment="top", horizontalalignment="right",
@@ -113,11 +122,17 @@ def plot_boxpanels(
     )
 
     axes[1].boxplot(euclidean_data, labels=group_order, **style)
+    if logy:
+        # A few spaces put a small subpopulation three orders of magnitude from the
+        # bulk; on a linear axis that collapses every box onto the baseline.
+        for a in axes:
+            a.set_yscale("log")
     axes[1].set_xlabel(xlabel, fontsize=12)
     axes[1].set_ylabel(f"{ylabel_model} Euclidean Distance", fontsize=12)
     axes[1].tick_params(axis="x", rotation=90)
     axes[1].text(
-        0.98, 0.97, f"Pearson r = {corr_euclidean:.2f}",
+        0.98, 0.97,
+        f"Pearson $r$ = {corr_euclidean:.2f}\nSpearman $\\rho$ = {rho_euclidean:.2f}",
         transform=axes[1].transAxes,
         fontsize=11,
         verticalalignment="top", horizontalalignment="right",
@@ -130,6 +145,8 @@ def plot_boxpanels(
 
     print(f"Saved figure to: {output_path}")
     print(f"ROCS bin edges: {bins}")
+    print(f"cosine    Pearson {corr_cosine:+.3f}  Spearman {rho_cosine:+.3f}")
+    print(f"euclidean Pearson {corr_euclidean:+.3f}  Spearman {rho_euclidean:+.3f}")
 
 
 if __name__ == "__main__":
@@ -137,6 +154,10 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, default="molformer", choices=["geodiff", "molformer", "unimol", "sde"])
     parser.add_argument("--mode", type=str, default="concat_norm", choices=["2D", "3D", "concat", "concat_norm"])
     parser.add_argument("--rocs_col", type=str, default="3d_similarity_ROCS", choices=["3d_similarity_ROCS", "ShapeTanimoto", "ColorTanimoto"])
+    # The reported Uni-Mol2 space is the 164M checkpoint with atom-wise mean pooling.
+    parser.add_argument("--unimol_size", type=str, default="164", choices=["164", "84", "1.1"])
+    parser.add_argument("--outdir", type=str, default="./figs")
+    parser.add_argument("--logy", action="store_true", help="log distance axis; use when a subpopulation sits far from the bulk")
     args = parser.parse_args()
 
     dir_name = str(RESULTS / "ampc200k")
@@ -144,18 +165,22 @@ if __name__ == "__main__":
     df = df.drop_duplicates(subset="smiles")
     print(df.shape)
 
+    os.makedirs(args.outdir, exist_ok=True)
+    suffix = "_log" if args.logy else ""
+
     if args.model in ["molformer", "unimol"]:
-        cosine_col = f"{args.model}_cosine"
-        euclidean_col = f"{args.model}_euclidean"
-        output_path = f"./figs/{args.model}_dist_{args.rocs_col}.pdf"
+        stem = args.model if args.model == "molformer" else f"{args.model}_{args.unimol_size}"
+        cosine_col = f"{stem}_cosine"
+        euclidean_col = f"{stem}_euclidean"
+        output_path = os.path.join(args.outdir, f"{stem}_dist_{args.rocs_col}{suffix}.pdf")
         if args.model == "molformer":
             ylabel_model = "MoLFormer"
         else:
-            ylabel_model = "UniMol"
+            ylabel_model = f"Uni-Mol2 {args.unimol_size}M"
     else:
         cosine_col = f"{args.model}_{args.mode}_cosine"
         euclidean_col = f"{args.model}_{args.mode}_euclidean"
-        output_path = f"./figs/{args.model}_{args.mode}_dist_{args.rocs_col}.pdf"
+        output_path = os.path.join(args.outdir, f"{args.model}_{args.mode}_dist_{args.rocs_col}{suffix}.pdf")
         if args.mode in ["2D", "3D"]:
             if args.model == "geodiff":
                 ylabel_model = f"GeoDiff {args.mode}"
@@ -183,4 +208,5 @@ if __name__ == "__main__":
         rocs_step=0.1,
         xlabel=xlabel,
         ylabel_model=ylabel_model,
+        logy=args.logy,
     )

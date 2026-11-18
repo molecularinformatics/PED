@@ -127,7 +127,7 @@ def main() -> None:
     ap.add_argument("--sde_ckpt",
                     default=os.path.join(REPO_ROOT, "external", "checkpoints", "moleculesde",
                                          "model_complete.pth"))
-    ap.add_argument("--molformer_model", default="ibm/MoLFormer-XL-both-10pct")
+    ap.add_argument("--molformer_model", default="ibm-research/MoLFormer-XL-both-10pct")
     ap.add_argument("--unimol_size", default="164m")
     ap.add_argument("--ecfp_radius", type=int, default=2)
     ap.add_argument("--ecfp_nbits", type=int, default=2048)

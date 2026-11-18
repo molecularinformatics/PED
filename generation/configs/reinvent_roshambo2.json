@@ -12,7 +12,7 @@
   },
   "parameters": {
     "scoring_function": {
-      "name": "custom_product",
+      "name": "custom_sum",
       "parallel": false,
       "parameters": [
         {
@@ -20,10 +20,10 @@
           "name": "ROSHAMBO2 combination similarity",
           "weight": 1,
           "specific_parameters": {
-            "reference_path": "data/reference.sdf",
-            "num_confs": 30,
-            "num_isomers": 4,
-            "num_processes": 16,
+            "reference_path": "data/bmsBTK_6O8I_bioactive.sdf",
+            "num_confs": 25,
+            "num_isomers": 2,
+            "num_processes": 24,
             "combination_param": 0.5,
             "backend": "cpp",
             "random_seed": 42
@@ -32,9 +32,9 @@
       ]
     },
     "diversity_filter": {
-      "name": "IdenticalMurckoScaffold",
+      "name": "NoFilter",
       "bucket_size": 25,
-      "minscore": 0.4,
+      "minscore": 0.0,
       "minsimilarity": 0.4
     },
     "inception": {

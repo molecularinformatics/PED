@@ -20,23 +20,24 @@ def path(*parts: str) -> str:
 
 
 EXTERNAL = ("generation", "external")
-REFERENCE_SDF_PARTS = ("data", "reference.sdf")
-REFERENCE_SMILES = "CC(C)(C)c1cc(C(=O)N2CCC[C@H]2C(=O)Nc2cccc(C#N)c2)c(O)c(C(C)(C)C)c1"
+REFERENCE_SDF_PARTS = ("data", "bmsBTK_6O8I_bioactive.sdf")
+REFERENCE_SMILES = "C/C=C/C(=O)N[C@H]1CCCN(c2c(F)cc(C(N)=O)c3[nH]c(C)c(C)c23)C1"
 
-# Sigmoid bounds per PED variant, from the hyperparameter table in the appendix.
-PED_SIGMOID = {
-    "geodiff_2d":     {"mode": "2D",     "low": 0.1, "high": 1.2},
-    "geodiff_3d":     {"mode": "3D",     "low": 1.0, "high": 10.0},
-    "geodiff_concat": {"mode": "concat", "low": 0.1, "high": 0.58},
+# Distance ranges used for the BTK runs, keyed by generator and reward.
+PED_BOUNDS = {
+    "reinvent": {"geodiff_2d": (0.1, 1.2), "geodiff_3d": (1, 10),
+                 "geodiff_concat": (0.1, 0.58), "molformer": (5, 17)},
+    "libinvent": {"geodiff_2d": (0.1, 0.9), "geodiff_3d": (1, 10),
+                  "geodiff_concat": (0.1, 0.5), "molformer": (6, 15)},
 }
-MOLFORMER_SIGMOID = {"low": 5.0, "high": 17.0}
+GEODIFF_MODES = {"geodiff_2d": "2D", "geodiff_3d": "3D", "geodiff_concat": "concat_norm"}
 
 
 def reverse_sigmoid(low: float, high: float, k: float = 0.25) -> dict:
     return {"transformation_type": "reverse_sigmoid", "low": low, "high": high, "k": k}
 
 
-def component(reward: str) -> dict:
+def component(model: str, reward: str) -> dict:
     """The one scoring component that distinguishes the arms."""
     if reward == "ecfp4":
         # The component defaults to radius 3 with count and feature invariants
@@ -59,9 +60,9 @@ def component(reward: str) -> dict:
             "weight": 1,
             "specific_parameters": {
                 "reference_path": path(*REFERENCE_SDF_PARTS),
-                "num_confs": 30,
-                "num_isomers": 4,
-                "num_processes": 16,
+                "num_confs": 25,
+                "num_isomers": 2,
+                "num_processes": 24,
                 "combination_param": 0.5,
                 "backend": "cpp",
                 "random_seed": 42,
@@ -76,32 +77,32 @@ def component(reward: str) -> dict:
                 "reference_smiles": REFERENCE_SMILES,
                 "model_name": "ibm/MoLFormer-XL-both-10pct",
                 "distance_metric": "euclidean",
-                "transformation": reverse_sigmoid(**MOLFORMER_SIGMOID),
+                "transformation": reverse_sigmoid(*PED_BOUNDS[model][reward]),
             },
         }
-    if reward in PED_SIGMOID:
-        spec = PED_SIGMOID[reward]
+    if reward in GEODIFF_MODES:
+        mode = GEODIFF_MODES[reward]
         return {
             "component_type": "geodiff_distance",
-            "name": f"GeoDiff {spec['mode']} Euclidean PED",
+            "name": f"GeoDiff {mode} Euclidean PED",
             "weight": 1,
             "specific_parameters": {
                 "reference_smiles": REFERENCE_SMILES,
                 "ckpt_path": path("external", "checkpoints", "geodiff",
                                   "model", "checkpoints", "drugs_default.pt"),
-                "embedding_mode": spec["mode"],
+                "embedding_mode": mode,
                 "distance_metric": "euclidean",
-                "transformation": reverse_sigmoid(spec["low"], spec["high"]),
+                "transformation": reverse_sigmoid(*PED_BOUNDS[model][reward]),
             },
         }
     raise ValueError(f"unknown reward {reward!r}")
 
 
-def scoring_function(reward: str) -> dict:
+def scoring_function(model: str, reward: str) -> dict:
     return {
-        "name": "custom_product",
+        "name": "custom_sum",
         "parallel": False,
-        "parameters": [component(reward)],
+        "parameters": [component(model, reward)],
     }
 
 
@@ -120,11 +121,11 @@ def reinvent_config(reward: str, out_dir: str, n_steps: int) -> dict:
             "job_id": f"reinvent_{reward}",
         },
         "parameters": {
-            "scoring_function": scoring_function(reward),
+            "scoring_function": scoring_function("reinvent", reward),
             "diversity_filter": {
-                "name": "IdenticalMurckoScaffold",
+                "name": "NoFilter",
                 "bucket_size": 25,
-                "minscore": 0.4,
+                "minscore": 0.0,
                 "minsimilarity": 0.4,
             },
             "inception": {"smiles": [], "memory_size": 100, "sample_size": 10},
@@ -164,15 +165,15 @@ def libinvent_config(reward: str, out_dir: str, n_steps: int, scaffold: str) -> 
             "randomize_scaffolds": False,
             "learning_strategy": {
                 "name": "dap",
-                "parameters": {"sigma": 128},
+                "parameters": {"sigma": 120},
             },
             "scoring_strategy": {
                 "name": "lib_invent",
-                "scoring_function": scoring_function(reward),
+                "scoring_function": scoring_function("libinvent", reward),
                 "diversity_filter": {
                     "name": "NoFilterWithPenalty",
                     "bucket_size": 25,
-                    "minscore": 0.4,
+                    "minscore": 0.0,
                     "minsimilarity": 0.4,
                 },
                 "reaction_filter": {"type": "selective", "reactions": []},
@@ -194,7 +195,7 @@ def main() -> None:
     ap.add_argument("--rewards", nargs="+", default=REWARDS, choices=REWARDS)
     ap.add_argument("--reinvent_steps", type=int, default=10000)
     ap.add_argument("--libinvent_steps", type=int, default=5000)
-    ap.add_argument("--scaffold", default="[*:0]c1ccc(cc1)[*:1]",
+    ap.add_argument("--scaffold", default="CC=CC([*:0])=O",
                     help="LibINVENT decoration scaffold with attachment points")
     args = ap.parse_args()
 

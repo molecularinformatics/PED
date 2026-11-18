@@ -12,7 +12,7 @@
   },
   "parameters": {
     "scoring_function": {
-      "name": "custom_product",
+      "name": "custom_sum",
       "parallel": false,
       "parameters": [
         {
@@ -21,7 +21,7 @@
           "weight": 1,
           "specific_parameters": {
             "smiles": [
-              "CC(C)(C)c1cc(C(=O)N2CCC[C@H]2C(=O)Nc2cccc(C#N)c2)c(O)c(C(C)(C)C)c1"
+              "C/C=C/C(=O)N[C@H]1CCCN(c2c(F)cc(C(N)=O)c3[nH]c(C)c(C)c23)C1"
             ],
             "radius": 2,
             "use_counts": false,
@@ -31,9 +31,9 @@
       ]
     },
     "diversity_filter": {
-      "name": "IdenticalMurckoScaffold",
+      "name": "NoFilter",
       "bucket_size": 25,
-      "minscore": 0.4,
+      "minscore": 0.0,
       "minsimilarity": 0.4
     },
     "inception": {

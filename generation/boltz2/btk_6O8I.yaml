@@ -1,0 +1,21 @@
+# Boltz-2 affinity input: BTK (PDB 6O8I, chain A) + one ligand.
+#
+# The protein sequence is the SEQRES of chain A (269 aa), not the ATOM records:
+# residues 434-441 are unresolved in the crystal (REMARK 465), so an ATOM-derived
+# sequence would be missing an 8-residue stretch. The 6O8I coordinates are not used;
+# Boltz-2 predicts the complex from sequence + SMILES.
+#
+# run_boltz2.py fills LIGAND_SMILES per molecule and points `msa` at the alignment
+# it fetches once. Co-folding is non-covalent: no warhead-cysteine bond is imposed.
+version: 1
+sequences:
+  - protein:
+      id: A
+      sequence: GYGSWEIDPKDLTFLKELGTGQFGVVKYGKWRGQYDVAIKMIKEGSMSEDEFIEEAKVMMNLSHEKLVQLYGVCTKQRPIFIITEYMANGCLLNYLREMRHRFQTQQLLEMCKDVCEAMEYLESKQFLHRDLAARNCLVNDQGVVKVSDFGLSRYVLDDEYTSSVGSKFPVRWSPPEVLMYSKFSSKSDIWAFGVLMWEIYSLGKMPYERFTNSETAEHIAQGLRLYRPHLASEKVYTIMYSCWHEKADERPTFKILLSNILDVMDEES
+      msa: MSA_PATH
+  - ligand:
+      id: B
+      smiles: 'LIGAND_SMILES'
+properties:
+  - affinity:
+      binder: B

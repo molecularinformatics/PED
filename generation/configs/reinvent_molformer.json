@@ -12,7 +12,7 @@
   },
   "parameters": {
     "scoring_function": {
-      "name": "custom_product",
+      "name": "custom_sum",
       "parallel": false,
       "parameters": [
         {
@@ -20,13 +20,13 @@
           "name": "MoLFormer Euclidean PED",
           "weight": 1,
           "specific_parameters": {
-            "reference_smiles": "CC(C)(C)c1cc(C(=O)N2CCC[C@H]2C(=O)Nc2cccc(C#N)c2)c(O)c(C(C)(C)C)c1",
+            "reference_smiles": "C/C=C/C(=O)N[C@H]1CCCN(c2c(F)cc(C(N)=O)c3[nH]c(C)c(C)c23)C1",
             "model_name": "ibm/MoLFormer-XL-both-10pct",
             "distance_metric": "euclidean",
             "transformation": {
               "transformation_type": "reverse_sigmoid",
-              "low": 5.0,
-              "high": 17.0,
+              "low": 5,
+              "high": 17,
               "k": 0.25
             }
           }
@@ -34,9 +34,9 @@
       ]
     },
     "diversity_filter": {
-      "name": "IdenticalMurckoScaffold",
+      "name": "NoFilter",
       "bucket_size": 25,
-      "minscore": 0.4,
+      "minscore": 0.0,
       "minsimilarity": 0.4
     },
     "inception": {

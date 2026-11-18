@@ -65,10 +65,5 @@ Distance CSVs carry the library metadata plus one column per reference,
 | `analysis/table_EF_*.py` | the LaTeX comparison tables |
 
 `stability.py` compares a PED variant against the published baselines in
-[`data/baseline_ef1.csv`](../data/baseline_ef1.csv) (2D ECFP4, ROCS and docking from
-the LIT-PCBA paper; ROSHAMBO2 from its own). It reports the mean per-target
-difference with a percentile bootstrap interval over targets, the number of targets
-won and lost, a Wilcoxon signed-rank test with Holm correction, and which single
-target removals reverse the sign. With 15 paired targets the test resolves only
-large and consistent effects, so a non-significant result means the data do not
-separate the two measures, not that they are equivalent.
+[`data/baseline_ef1.csv`](../data/baseline_ef1.csv) and writes
+`stability_<distance_type>.csv` together with the 2x2 figure.
