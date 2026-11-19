@@ -62,6 +62,13 @@ def series(df: pd.DataFrame, method: str, metric: str) -> np.ndarray:
     return df[df.method == method].set_index("target")[metric].reindex(TARGETS).to_numpy(float)
 
 
+def short(name: str) -> str:
+    """Axis-label form of a method name: the caption gives the full one."""
+    for drop in (" distance", " similarity", "2D "):
+        name = name.replace(drop, "")
+    return name
+
+
 def make_figure(ped: pd.DataFrame, base: pd.DataFrame, methods: Dict[str, str],
                 baseline: str, out_base: str) -> None:
     diffs, loo = {}, {}
@@ -98,19 +105,19 @@ def make_figure(ped: pd.DataFrame, base: pd.DataFrame, methods: Dict[str, str],
         ax.axvline(mean_d, color=INK_2, lw=1.2, zorder=3)
         ax.set_xlim(*xlim0)
         ax.set_yticks(ypos)
-        ax.set_yticklabels(names, fontsize=8, color=INK)
+        ax.set_yticklabels(names, fontsize=9.5, color=INK)
         ax.annotate(f"mean {mean_d:+.2f}\n95% CI [{lo:+.2f}, {hi:+.2f}]",
                     xy=(0.97, 0.015), xycoords="axes fraction", ha="right",
-                    va="bottom", fontsize=7.5, color=INK_2)
+                    va="bottom", fontsize=9, color=INK_2)
         off = 0.02 * (xlim0[1] - xlim0[0])
         for i in {int(np.argmin(vals)), int(np.argmax(vals))}:
             ax.text(vals[i] + (off if vals[i] > 0 else -off), ypos[i], f"{vals[i]:+.1f}",
                     va="center", ha="left" if vals[i] > 0 else "right",
-                    fontsize=7.5, color=INK_2)
-        ax.set_xlabel(f"$\\Delta$ EF1% ({methods[metric]} $-$ {baseline})",
-                      fontsize=8.5, color=INK)
-        ax.set_title(f"{next(panel)}   Per-target difference — {label}",
-                     loc="left", fontsize=9.5, color=INK, pad=6)
+                    fontsize=9, color=INK_2)
+        ax.set_xlabel(f"$\\Delta$ EF1% ({short(methods[metric])} $-$ {short(baseline)})",
+                      fontsize=10, color=INK)
+        ax.set_title(f"{next(panel)}   Per-target difference, {label}",
+                     loc="left", fontsize=10.5, color=INK, pad=6)
 
         l = loo[metric].set_index("dropped_target").reindex(names)
         ax = axes[r, 1]
@@ -125,15 +132,15 @@ def make_figure(ped: pd.DataFrame, base: pd.DataFrame, methods: Dict[str, str],
         ax.set_yticklabels([])
         ax.annotate(f"all {len(TARGETS)} targets: {mean_d:+.2f}", xy=(0.03, 0.015),
                     xycoords="axes fraction", ha="left", va="bottom",
-                    fontsize=7.5, color=INK_2,
+                    fontsize=9, color=INK_2,
                     bbox=dict(facecolor=SURFACE, edgecolor="none", pad=1.0))
-        ax.set_xlabel("mean $\\Delta$ EF1% with target removed", fontsize=8.5, color=INK)
-        ax.set_title(f"{next(panel)}   Leave-one-target-out — {label}",
-                     loc="left", fontsize=9.5, color=INK, pad=6)
+        ax.set_xlabel("mean $\\Delta$ EF1%, target removed", fontsize=10, color=INK)
+        ax.set_title(f"{next(panel)}   Leave-one-target-out, {label}",
+                     loc="left", fontsize=10.5, color=INK, pad=6)
 
     for ax in axes.ravel():
         ax.set_ylim(-2.4, len(TARGETS) - 0.3)
-        ax.tick_params(axis="x", labelsize=8, colors=INK_2, length=2.5, width=0.6)
+        ax.tick_params(axis="x", labelsize=9.5, colors=INK_2, length=2.5, width=0.6)
         ax.tick_params(axis="y", length=0)
         for side in ("top", "right", "left"):
             ax.spines[side].set_visible(False)

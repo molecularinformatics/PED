@@ -72,14 +72,6 @@ Uni-Mol2 comes from
 [unimol-tools](https://unimol-tools.readthedocs.io/en/latest/train.html#uni-mol-representation).
 
 
-## Data
-
-For [LIT-PCBA](https://drugdesign.unistra.fr/LIT-PCBA/), we used the [preprocessed reference ligand smiles](https://github.com/sievestack/lit-pcba-audit/blob/main/pdb_to_ligand_mapping_with_smiles.csv) provided by [Data Leakage and Redundancy in the LIT-PCBA Benchmark
-](https://arxiv.org/abs/2507.21404). Our original and best-pooled EF1% results for each reference ligand are in the [data](data/) folder.
-
-The AmpC dataset can be found [here](https://zenodo.org/records/10277786).
-
-
 ## Pipelines
 
 Each pipeline has one end-to-end entry point that takes a subset or everything, and
@@ -94,12 +86,58 @@ resumes rather than repeats on a rerun.
   `python lit_pcba_pipeline/run_lit_pcba.py --targets all`
 
 - [generation](generation/): PED-based rewards for molecular generation with
-  reinforcement learning, the run configurations, and Boltz-2 affinity prediction
-  for the generated molecules.
+  REINVENT, LibINVENT and SynFormer, Boltz-2 affinity prediction for the generated
+  molecules, and the analysis that turns a run into the reported tables and figures.
+  `python generation/configs/make_configs.py --absolute --out_dir /tmp/ped-configs`
+  then `python generation/external/reinvent/input.py /tmp/ped-configs/reinvent_molformer.json`
 
 - [external](external/): pinned clones and patches for GeoDiff and MoleculeSDE.
+  Set up through `external/setup.sh`, described above.
 
 Pipeline outputs go to `results/`, which is gitignored.
+
+
+## Data
+
+### In this repository
+
+[`data/`](data/) holds the target files the pipelines read and the result tables
+behind the paper's tables and figures.
+
+| File | Notes |
+|---|---|
+| `lit_pcba_<encoder>_<metric>_per_reference.csv` | EF1% for each LIT-PCBA reference ligand |
+| `lit_pcba_<encoder>_<metric>_pooled.csv` | best-pooled EF1% per LIT-PCBA target |
+| `baseline_ef1.csv` | the published baselines: 2D ECFP4, ROCS, docking and ROSHAMBO2 |
+| `lit-pcba-reference.csv` | the 120 corrected LIT-PCBA reference ligand SMILES |
+| `6O8I.pdb` | PDB entry 6O8I, BTK in complex with BMS-986195 |
+| `btk_bms.fasta` | the SEQRES of chain A of 6O8I, 269 residues |
+| `bmsBTK_6O8I_bioactive.sdf` | the bound ligand of 6O8I with hydrogens added, the reference for 3D scoring |
+| `boltz2_top1k_<generator>.csv` | the top 1,000 generated molecules per reward arm, with Boltz-2 predicted affinity |
+
+`<encoder>` is `geodiff` or `molformer`, `<metric>` is `cosine` or `euclidean`,
+and `<generator>` is `reinvent`, `libinvent` or `synformer`.
+
+### On Zenodo
+
+[10.5281/zenodo.24374864](https://doi.org/10.5281/zenodo.24374864) carries
+everything in `data/` together with the two sets that are too large for the
+repository:
+
+| File | Notes |
+|---|---|
+| `similarity_distance_200k.csv` | the AmpC study set: ROCS and ECFP4 similarity to the reference ligand, and the distance to it in every embedding space tested, as cosine and Euclidean |
+| `top5k_<generator>.csv` | the top 5,000 generated molecules per reward arm |
+
+The record's `README.md` documents every file and column.
+
+### External datasets
+
+- [LIT-PCBA](https://drugdesign.unistra.fr/LIT-PCBA/). The reference ligand SMILES
+  in `data/lit-pcba-reference.csv` are the corrected ones from
+  [Data Leakage and Redundancy in the LIT-PCBA Benchmark](https://arxiv.org/abs/2507.21404) after deduplication.
+- [AmpC](https://zenodo.org/records/10277786). The 200k study set is a uniform
+  sample of it.
 
 
 ## Citation

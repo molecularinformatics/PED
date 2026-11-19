@@ -15,3 +15,11 @@ __pycache__/
 external/geodiff/
 external/moleculesde/
 external/checkpoints/
+
+# generation/external holds cloned upstream repos and downloaded priors
+generation/external/reinvent/
+generation/external/reinvent-scoring/
+generation/external/roshambo2/
+generation/external/priors/
+
+Zenodo/
